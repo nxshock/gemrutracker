@@ -35,7 +35,7 @@ func initDb(filePath string) error {
 		return err
 	}
 
-	db, err = sql.Open("sqlite3", fmt.Sprintf("file:%s", filePath)) //?mode=ro
+	db, err = sql.Open("sqlite3", fmt.Sprintf("file:%s?mode=rwc", filePath))
 	if err != nil {
 		return err
 	}
