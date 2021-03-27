@@ -60,28 +60,28 @@ func initDb(filePath string) error {
 	if err != nil {
 		db.Close()
 		os.Remove(filePath)
-		return err
+		return fmt.Errorf("ошибка при старте транзакции: %v", err)
 	}
 
 	scriptBytes, err := sqlScripts.ReadFile("init.sql")
 	if err != nil {
 		db.Close()
 		os.Remove(filePath)
-		return err
+		return fmt.Errorf("ошибка при получении скрипта: %v", err)
 	}
 
 	err = bulkExec(tx, string(scriptBytes))
 	if err != nil {
 		db.Close()
 		os.Remove(filePath)
-		return err
+		return fmt.Errorf("ошибка при выполнении скрипта: %v", err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		db.Close()
 		os.Remove(filePath)
-		return err
+		return fmt.Errorf("ошибка при коммите транзакции: %v", err)
 	}
 
 	logrus.WithField("filePath", filePath).Info("База данных создана.")
