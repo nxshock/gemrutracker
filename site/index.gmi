@@ -1,0 +1,4 @@
+# Rutracker magnet database
+## Меню
+=> search 🔎 Поиск
+=> about ℹ О ресурсе

@@ -1,0 +1,42 @@
+[Unit]
+Description=gemrutracker service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=gemrutracker
+ExecStart=/usr/bin/gemrutracker /etc/gemrutracker.toml
+
+SecureBits=keep-caps
+CapabilityBoundingSet=
+AmbientCapabilities=
+DevicePolicy=closed
+IPAccounting=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+ReadWritePaths=
+RemoveIPC=true
+RestrictAddressFamilies=~AF_PACKET AF_NETLINK AF_UNIX
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@resources
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target
