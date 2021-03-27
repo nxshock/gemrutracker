@@ -56,13 +56,6 @@ func initDb(filePath string) error {
 	// database not exists
 	logrus.WithField("filePath", filePath).Info("Создание базы данных...")
 
-	tx, err := db.Begin()
-	if err != nil {
-		db.Close()
-		os.Remove(filePath)
-		return fmt.Errorf("ошибка при старте транзакции: %v", err)
-	}
-
 	scriptBytes, err := sqlScripts.ReadFile("init.sql")
 	if err != nil {
 		db.Close()
@@ -70,18 +63,11 @@ func initDb(filePath string) error {
 		return fmt.Errorf("ошибка при получении скрипта: %v", err)
 	}
 
-	err = bulkExec(tx, string(scriptBytes))
+	err = bulkExec(db, string(scriptBytes))
 	if err != nil {
 		db.Close()
 		os.Remove(filePath)
 		return fmt.Errorf("ошибка при выполнении скрипта: %v", err)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		db.Close()
-		os.Remove(filePath)
-		return fmt.Errorf("ошибка при коммите транзакции: %v", err)
 	}
 
 	logrus.WithField("filePath", filePath).Info("База данных создана.")
@@ -89,7 +75,12 @@ func initDb(filePath string) error {
 	return nil
 }
 
-func bulkExec(tx *sql.Tx, script string) error {
+func bulkExec(db *sql.DB, script string) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("ошибка при старте транзакции: %v", err)
+	}
+
 	for i, v := range strings.Split(script, ";") {
 		if strings.TrimSpace(v) == "" {
 			continue
@@ -97,8 +88,14 @@ func bulkExec(tx *sql.Tx, script string) error {
 
 		_, err := tx.Exec(v)
 		if err != nil {
+			tx.Rollback()
 			return fmt.Errorf("ошибка при выполнении команды №%d: %v", i+1, err)
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("ошибка при коммите транзакции: %v", err)
 	}
 
 	return nil
