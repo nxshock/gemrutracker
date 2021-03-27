@@ -1,0 +1,5 @@
+post_install() {
+    echo "Don't forget to generate cert and key files:"
+    echo "openssl req -newkey rsa:2048 -days 1826 -nodes -keyout /var/lib/gemrutracker/key.pem -nodes -x509 -out /var/lib/gemrutracker/cert.pem -subj \"/CN=example.com\""
+    echo "chown gemrutracker:gemrutracker /var/lib/gemrutracker/*.pem"
+}
