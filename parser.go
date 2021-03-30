@@ -56,8 +56,6 @@ func (parser *Parser) Update() error {
 	}).Debug("Начат процесс обновления...")
 
 	workerPool := gwp.New(config.ParserThreadCount)
-	workerPool.ShowProgress = true
-	workerPool.EstimateCount = config.UpdateRecordCount
 
 	newMaxId := beforeUpdateMaxId
 
