@@ -41,10 +41,10 @@ func initConfig(filePath string) error {
 	if config.LogLevel == 0 {
 		config.LogLevel = logrus.InfoLevel
 	}
-	if config.UpdateForwardRecordCount <= 0 {
+	if config.UpdateForwardRecordCount < 0 {
 		config.UpdateForwardRecordCount = 1000
 	}
-	if config.UpdateBackwardRecordCount <= 0 {
+	if config.UpdateBackwardRecordCount < 0 {
 		config.UpdateBackwardRecordCount = 1000
 	}
 	if config.ParserThreadCount <= 0 {
