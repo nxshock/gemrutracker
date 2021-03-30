@@ -21,7 +21,7 @@ var (
 
 func initDb(workDir string) error {
 	var err error
-	db, err = zkv.OpenWithConfig(filepath.Join(config.WorkDir, "db.zkv"), &zkv.Config{BlockDataSize: 64 * 1024 * 1024})
+	db, err = zkv.OpenWithConfig(filepath.Join(config.WorkDir, "db.zkv"), &zkv.Config{BlockDataSize: 64 * 1024})
 	if err != nil {
 		return err
 	}
