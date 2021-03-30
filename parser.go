@@ -41,8 +41,6 @@ func initParser() error {
 }
 
 func (parser *Parser) Update() error {
-	var stepRange = config.UpdateRecordCount + 1
-
 	logrus.Info("Начато обновление базы данных...")
 
 	beforeUpdateMaxId, err := lastDbId()
@@ -51,15 +49,15 @@ func (parser *Parser) Update() error {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"от": beforeUpdateMaxId - stepRange,
-		"до": beforeUpdateMaxId + stepRange,
+		"от": beforeUpdateMaxId - config.UpdateForwardRecordCount,
+		"до": beforeUpdateMaxId + config.UpdateBackwardRecordCount,
 	}).Debug("Начат процесс обновления...")
 
 	workerPool := gwp.New(config.ParserThreadCount)
 
 	newMaxId := beforeUpdateMaxId
 
-	for i := beforeUpdateMaxId - stepRange; i <= beforeUpdateMaxId+stepRange; i++ {
+	for i := beforeUpdateMaxId - config.UpdateBackwardRecordCount; i <= beforeUpdateMaxId+config.UpdateForwardRecordCount; i++ {
 		if i <= 0 {
 			continue
 		}

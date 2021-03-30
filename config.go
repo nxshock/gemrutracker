@@ -9,15 +9,16 @@ import (
 )
 
 type Config struct {
-	WorkDir           string
-	HttpProxyAddress  string
-	ListenAddress     string
-	UpdatePeriodHours int
-	LogLevel          logrus.Level
-	UpdateRecordCount int
-	ParserThreadCount int
-	CertFilePath      string
-	KeyFilePath       string
+	WorkDir                   string
+	HttpProxyAddress          string
+	ListenAddress             string
+	UpdatePeriodHours         int
+	LogLevel                  logrus.Level
+	UpdateForwardRecordCount  int
+	UpdateBackwardRecordCount int
+	ParserThreadCount         int
+	CertFilePath              string
+	KeyFilePath               string
 }
 
 var config *Config
@@ -40,8 +41,11 @@ func initConfig(filePath string) error {
 	if config.LogLevel == 0 {
 		config.LogLevel = logrus.InfoLevel
 	}
-	if config.UpdateRecordCount <= 0 {
-		config.UpdateRecordCount = 1000
+	if config.UpdateForwardRecordCount <= 0 {
+		config.UpdateForwardRecordCount = 1000
+	}
+	if config.UpdateBackwardRecordCount <= 0 {
+		config.UpdateBackwardRecordCount = 1000
 	}
 	if config.ParserThreadCount <= 0 {
 		config.ParserThreadCount = runtime.NumCPU()
