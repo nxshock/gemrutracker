@@ -1,5 +1,5 @@
 package main
 
 const (
-	defaultConfigFilePath = "/etc/config.toml"
+	defaultConfigFilePath = "/etc/gemrutracker.toml"
 )
