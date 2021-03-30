@@ -1,4 +1,4 @@
-DbFilePath = "/var/lib/gemrutracker/db.sqlite"
+WorkDir = "/var/lib/gemrutracker/"
 HttpProxyAddress = ""
 ListenAddress = ":1965"
 UpdatePeriodHours = 24

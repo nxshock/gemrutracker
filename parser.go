@@ -45,46 +45,47 @@ func (parser *Parser) Update() error {
 
 	logrus.Info("Начато обновление базы данных...")
 
-	maxId, err := lastDbId()
+	beforeUpdateMaxId, err := lastDbId()
 	if err != nil {
-		return err
+		return fmt.Errorf("lastDbId(): %v", err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"от": maxId - stepRange,
-		"до": maxId + stepRange,
+		"от": beforeUpdateMaxId - stepRange,
+		"до": beforeUpdateMaxId + stepRange,
 	}).Debug("Начат процесс обновления...")
 
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("ошибка при старте транзакции: %v", err)
-	}
-
 	workerPool := gwp.New(config.ParserThreadCount)
+	workerPool.ShowProgress = true
+	workerPool.EstimateCount = config.UpdateRecordCount
 
-	for i := maxId - stepRange; i < maxId+stepRange; i++ {
+	newMaxId := beforeUpdateMaxId
+
+	for i := beforeUpdateMaxId - stepRange; i <= beforeUpdateMaxId+stepRange; i++ {
 		if i <= 0 {
 			continue
 		}
 
 		workerPool.Add(func() error {
-			info, err := parser.GetPage(i)
+			n := i
+
+			info, err := parser.GetPage(n)
 			if err != nil {
-				logrus.WithField("id", i).Debug(err)
+				logrus.WithField("id", n).Debug(err)
 				return err
 			}
 
-			_, err = tx.Exec("INSERT OR REPLACE INTO data(id, magnet, forum_id) SELECT ?, ?, (SELECT forums.id FROM forums WHERE name = ?)", i, info.MagnetData, info.ForumName)
+			if n > newMaxId {
+				newMaxId = n
+			}
+
+			err = db.Set(n, *info)
 			if err != nil {
 				logrus.WithField("id", i).Errorln("Ошибка при выполнении вставки в базу данных:", err)
 				return err
 			}
 
-			_, err = tx.Exec("INSERT OR REPLACE INTO titles(rowid, title) SELECT ?, ?", i, info.Title)
-			if err != nil {
-				logrus.WithField("id", i).Errorln("Ошибка при выполнении вставки в базу данных:", err)
-				return err
-			}
+			index.Add(n, info.Title)
 
 			return nil
 		})
@@ -92,19 +93,18 @@ func (parser *Parser) Update() error {
 
 	workerPool.CloseAndWait()
 
-	err = tx.Commit()
+	err = index.Save()
 	if err != nil {
-		return fmt.Errorf("ошибка при коммите транзакции: %v", err)
+		return fmt.Errorf("ошибка при сохранении индекса: %v", err)
 	}
 
-	newLastId, err := lastDbId()
+	err = db.Set("maxId", newMaxId)
 	if err != nil {
-		logrus.WithError(err).Warn("Обновление базы данных завершено.")
-		return nil
+		return fmt.Errorf("ошибка при сохранении maxId: %v", err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"добавлено": newLastId - maxId,
+		"добавлено": newMaxId - beforeUpdateMaxId,
 		"ошибок":    workerPool.ErrorCount(),
 	}).Info("Обновление базы данных завершено.") // TODO: вместо "добавлено" показывает изменение ID
 

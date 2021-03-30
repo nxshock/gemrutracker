@@ -20,19 +20,26 @@ func init() {
 	logrus.SetOutput(os.Stdout)
 	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true, DisableTimestamp: true})
 
-	if len(os.Args) != 2 {
+	if len(os.Args) > 2 {
 		printUsage()
 		os.Exit(1)
 	}
 
-	err := initConfig(os.Args[1])
+	var configPath string
+	if len(os.Args) == 2 {
+		configPath = os.Args[1]
+	} else {
+		configPath = defaultConfigFilePath
+	}
+
+	err := initConfig(configPath)
 	if err != nil {
 		logrus.Fatalln(err)
 	}
 
 	logrus.SetLevel(config.LogLevel)
 
-	err = initDb(config.DbFilePath)
+	err = initDb(config.WorkDir)
 	if err != nil {
 		logrus.Fatalln(err)
 	}
@@ -75,11 +82,16 @@ func main() {
 	logrus.Infoln("Закрытие базы данных...")
 	err := db.Close()
 	if err != nil {
-		logrus.Fatalln(err)
+		logrus.Fatalf("ошибка при сохранении базы данных: %v", err)
 	}
+	err = index.Save()
+	if err != nil {
+		logrus.Fatalf("ошибка при сохранении индекса: %v", err)
+	}
+
 	logrus.Infoln("Программа остановлена.")
 }
 
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage:\n%s <path to database file>\n", filepath.Base(os.Args[0]))
+	fmt.Fprintf(os.Stderr, "Usage:\n%s <path to config file>\n", filepath.Base(os.Args[0]))
 }

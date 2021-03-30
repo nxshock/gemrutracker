@@ -9,7 +9,7 @@ import (
 )
 
 type Config struct {
-	DbFilePath        string
+	WorkDir           string
 	HttpProxyAddress  string
 	ListenAddress     string
 	UpdatePeriodHours int
